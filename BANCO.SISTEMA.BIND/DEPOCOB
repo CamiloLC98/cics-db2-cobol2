@@ -1,0 +1,10 @@
+DSN    SYSTEM       (DB9G)
+BIND   PACKAGE      (APPCOLL)  -
+       MEMBER       (DEPOCOB)  -
+       ACTION       (REPLACE)  -
+       ISOLATION    (CS)       -
+       VALIDATE     (BIND)     -
+       ENCODING     (EBCDIC)   -
+       FLAG         (I)        -
+       RELEASE      (COMMIT)
+END

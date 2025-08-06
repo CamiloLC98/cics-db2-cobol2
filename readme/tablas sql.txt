@@ -1,0 +1,39 @@
+-- Tabla de cuentas
+CREATE TABLE CUENTAS (
+    NUMERO_CUENTA     CHAR(10)     PRIMARY KEY,
+    CEDULA_CLIENTE    CHAR(10),
+    NOMBRE_CLIENTE    VARCHAR(50),
+    SALDO             DECIMAL(15,2),
+    ESTADO_CUENTA     CHAR(1)      -- 'A' = Activa, 'B' = Bloqueada
+);
+
+-- Tabla de transacciones
+CREATE TABLE TATRANS (                                                  
+      ID_TRANSACTION   INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    , NUMERO_CUENTA    CHAR(10) NOT NULL                                
+    , TIPO_TRANSACCION CHAR(1)  NOT NULL                                
+    , MONTO            DESIMAL(15,2)                                    
+    , FECHA_HORA       TIMESTAMP DEFAULT CURRENT_TIMESTAMP              
+                                                                        
+      CONSTRAIN FK_TRANS_CUENTA                                         
+          FOREIGN KEY (NUMERO_CUENTA)                                   
+          REFERENCES TSCUENT(NUMERO_CUENTA)                             
+          ON DELETE CASCADE                                             
+);                                                                      
+
+CREATE TABLE ESTADO_CUENTA_LOG (
+    ID_LOG             INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    NUMERO_CUENTA      CHAR(10)     NOT NULL,
+    ESTADO_ANTERIOR    CHAR(1)      NOT NULL,  -- 'A' o 'B'
+    ESTADO_NUEVO       CHAR(1)      NOT NULL,  -- 'A' o 'B'
+    FECHA_HORA         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    USUARIO_OPERADOR   CHAR(10),               -- Usuario que cambió el estado
+
+    -- Clave foránea
+    CONSTRAINT FK_LOG_CUENTA
+        FOREIGN KEY (NUMERO_CUENTA)
+        REFERENCES CUENTAS(NUMERO_CUENTA)
+        ON DELETE CASCADE
+);
+
+

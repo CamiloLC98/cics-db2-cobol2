@@ -1,0 +1,43 @@
+BANCO                         (Lista)
+
+└── CUENTAS                   (Grupo)
+    ├── MAPSET                (Pantallas BMS)
+    │   ├── MENUMP            -> Menú principal
+    │   ├── CONSMP            -> Consulta de cuenta
+    │   ├── DEPOBMP           -> Depósito
+    │   ├── RETRMP            -> Retiro
+    │   ├── MOVSMP            -> Ver movimientos
+    │   └── BLOQMP            -> Bloquear cuenta
+
+    ├── PROGRAM               (Programas COBOL)
+    │   ├── MENUPGM           -> Muestra menú y direcciona
+    │   ├── CLNTCOB           -> Consulta cliente
+    │   ├── DEPOCOB           -> Depósito en cuenta
+    │   ├── RETRCOB           -> Retiro desde cuenta
+    │   ├── MOVSCOB           -> Ver movimientos
+    │   └── BLOQCOB           -> Bloqueo de cuenta
+
+    ├── TRANSACTION           (Transacciones CICS)
+    │   ├── MENU              -> Invoca MENUPGM
+    │   ├── CLIE              -> Invoca CLNTCOB
+    │   ├── DEPO              -> Invoca DEPOCOB
+    │   ├── RETR              -> Invoca RETRCOB
+    │   ├── MOVS              -> Invoca MOVSCOB
+    │   └── BLOQ              -> Invoca BLOQCOB
+
+    ├── DB2CONN               (Conexión a DB2)
+    │   └── CICS$DB2          -> Conexión al subsistema DB2
+
+    ├── DB2ENTRY              (Entradas DB2 para los programas SQL)
+    │   ├── CLNTENTR          -> Entrada para CLNTCOB  PLAN = CLNTPL
+    │   ├── DEPOENTR          -> Entrada para DEPOCOB  PLAN = DEPOPL 
+    │   ├── RETRENTR          -> Entrada para RETRCOB  PLAN = RETRPL 
+    │   ├── MOVSENTR          -> Entrada para MOVSCOB  PLAN = MOVSPL
+    │   └── BLOQENTR          -> Entrada para BLOQCOB  PLAN = BLOQPL 
+
+    └── DB2TRAN               (Asociaciones transacción ↔ entrada DB2)
+        ├── CLNTTRAN          -> CLIE    ↔ CLNTENTR
+        ├── DEPOTRAN          -> DEPO    ↔ DEPOENTR
+        ├── RETRTRAN          -> RETR    ↔ RETRENTR
+        ├── MOVSTRAN          -> MOVS    ↔ MOVSENTR
+        └── BLOQTRAN          -> BLOQ    ↔ BLOQENTR

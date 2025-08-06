@@ -1,0 +1,43 @@
+🔗 Relaciones entre las tablas
+1. CUENTAS ↔ TRANSACCIONES
+Relación: Uno a muchos
+
+Descripción: Una cuenta bancaria puede tener muchas transacciones (depósitos y retiros), pero cada transacción pertenece a una sola cuenta.
+CUENTAS (1) --------< (N) TRANSACCIONES
+
+2. CUENTAS ↔ ESTADO_CUENTA_LOG
+Relación: Uno a muchos
+
+Descripción: Una cuenta puede haber sido activada y bloqueada múltiples veces, lo cual se registra en la tabla de historial. Cada cambio de estado está asociado a una sola cuenta.
+CUENTAS (1) --------< (N) ESTADO_CUENTA_LOG
+
+Resumen de relaciones
+
+| Tabla padre | Tabla hija          | Relación   | Cardinalidad |
+| ----------- | ------------------- | ---------- | ------------ |
+| `CUENTAS`   | `TRANSACCIONES`     | 1 a muchos | 1\:N         |
+| `CUENTAS`   | `ESTADO_CUENTA_LOG` | 1 a muchos | 1\:N         |
+
+
+                        ┌──────────────────────────────┐
+                        │          CUENTAS             │
+                        ├──────────────────────────────┤
+                        │ NUMERO_CUENTA (PK)           │
+                        │ CEDULA_CLIENTE               │
+                        │ NOMBRE_CLIENTE               │
+                        │ SALDO                        │
+                        │ ESTADO_CUENTA                │
+                        └────────────┬─────────────────┘
+                                     │
+         ┌──────────────────────────┼────────────────────────────┐
+         ▼                                                  ▼
+┌──────────────────────┐                      ┌─────────────────────────────┐
+│     TRANSACCIONES     │                      │     ESTADO_CUENTA_LOG       │
+├──────────────────────┤                      ├─────────────────────────────┤
+│ ID_TRANSACCION (PK)   │                      │ ID_LOG (PK)                 │
+│ NUMERO_CUENTA (FK)    │◄─────────────────────│ NUMERO_CUENTA (FK)          │
+│ TIPO_TRANSACCION      │                      │ ESTADO_ANTERIOR             │
+│ MONTO                 │                      │ ESTADO_NUEVO                │
+│ FECHA_HORA            │                      │ FECHA_HORA                  │
+└──────────────────────┘                      │ USUARIO_OPERADOR            │
+                                              └─────────────────────────────┘

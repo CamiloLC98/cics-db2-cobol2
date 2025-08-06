@@ -1,0 +1,9 @@
+BIENVENIDO AL SISTEMA BANCARIO
+
+1. Consultar cuenta
+2. Depósito
+3. Retiro
+4. Ver movimientos
+5. Bloquear cuenta
+
+Seleccione opción:
