@@ -18,7 +18,6 @@
                88 WS-PRIMERA-VEZ                      VALUE 'Y'.
        COPY BLOQMPCP.
        COPY DFHAID.
-       COPY DFHBMSCA.
 
        PROCEDURE DIVISION.
        000-MAIN-LOGIC.

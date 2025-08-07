@@ -36,7 +36,6 @@
 
        COPY DEPOMPCP.
        COPY DFHAID.
-       COPY DFHBMSCA.
        COPY DDCICS.
 
        LINKAGE SECTION.
@@ -231,15 +230,6 @@
                 RETURN
                 TRANSID('DEPO')
                 COMMAREA(CH-COMMAREA)
-           END-EXEC.
-
-       400-FIN.
-           EXEC CICS SEND CONTROL
-                ERASE
-                FREEKB
-           END-EXEC
-
-           EXEC CICS RETURN
            END-EXEC.
 
        999-FALLO-FICHERO.

@@ -1,0 +1,15 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    "cobol.copybookdirs": [
+      "./BANCO.SISTEMA.COPY"
+    ],
+    "cobol.copybookexts": [".cpy", ".inc", ".copy"],
+    "cobol.enable_semantic_copy_analysis": true,
+    "cobol.implicitExecSql": true
+  }
+}
