@@ -22,9 +22,6 @@
            03 WS-SALDO-FAN            PIC X(15).
            03 WS-SALDO-JUST           PIC X(15).
            03 INDICE                  PIC 9(02).
-
-       01  MI-COMMAREA.
-           03  CAMPOINICIO            PIC  X(8).
        01  SWITCHES.
            03  WS-PRIMERA-FALG        PIC X           VALUE 'N'.
                88 WS-PRIMERA-VEZ                      VALUE 'Y'.
@@ -147,7 +144,13 @@
            MOVE CL-NUMERO-CUENTA  TO  CUENTAO
            MOVE CL-CEDULA-CLIENTE TO  CEDULAO
            MOVE CL-NOMBRE-CLIENTE TO  NOMBREO
-
+      *     
+      *--- Mover saldo a la izquierda para ajustarlo a la pantalla 
+      *--- de cics. Cuando saldo no ocupa sus 15 espacios los rellena
+      *--- con espacion a la izquerda mostrando el numero desalineado
+      *--- con el orden que se lleva, asi que usando perform varying
+      *--- descartamos los espacion y nos quedamos con el numero
+      *
            MOVE CL-SALDO          TO  WS-SALDO
            MOVE WS-SALDO          TO  WS-SALDO-FAN
            PERFORM VARYING INDICE FROM 1 BY 1 UNTIL INDICE > 15
@@ -156,7 +159,6 @@
                       SET WS-EXIT-PERFORM TO TRUE
                    END-IF
             END-PERFORM
-
            MOVE WS-SALDO-FAN(INDICE - 1:) TO WS-SALDO-JUST
            MOVE WS-SALDO-JUST  TO SALDOO
 
@@ -209,7 +211,7 @@
        300-RETURN.
            EXEC CICS RETURN
                 TRANSID('CLIE')
-                COMMAREA(MI-COMMAREA)
+                COMMAREA(CH-COMMAREA)
                 LENGTH(8)
            END-EXEC.
 
