@@ -13,7 +13,7 @@
            EXEC SQL DECLARE TAESTLOG TABLE
            ( ID_LOG                         INTEGER NOT NULL,
              NUMERO_CUENTA_L                CHAR(10) NOT NULL,
-             ESTADO_CUENTA                  CHAR(1) NOT NULL,
+             ESTADO_CUENTA_L                CHAR(1) NOT NULL,
              ESTADO_NUEVO                   CHAR(1) NOT NULL,
              FECHA_HORA                     TIMESTAMP NOT NULL
            ) END-EXEC.
@@ -25,8 +25,8 @@
            10 CL-ID-LOG            PIC S9(9) USAGE COMP.
       *                       NUMERO_CUENTA_L
            10 CL-NUMERO-CUENTA-L   PIC X(10).
-      *                       ESTADO_CUENTA
-           10 CL-ESTADO-CUENTA     PIC X(1).
+      *                       ESTADO_CUENTA_L
+           10 CL-ESTADO-CUENTA-L   PIC X(1).
       *                       ESTADO_NUEVO
            10 CL-ESTADO-NUEVO      PIC X(1).
       *                       FECHA_HORA

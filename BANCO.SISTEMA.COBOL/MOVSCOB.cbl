@@ -143,6 +143,8 @@
                    NOHANDLE
               END-EXEC
       *
+      *--- F4   : IR A LA PAGINA ANTERIOR
+      *--- F5   : IR A LA PAGINA SIGUIENTE
       *--- ENTER: VALIDAMOS EL MAPA Y SI ES CORRECTO PROCESO ENTER
       *
               EVALUATE EIBAID
@@ -169,12 +171,27 @@
       *--- SI LLEGA AQUÖ, LOS CAMPOS TIENEN DATOS VµLIDOS Y SE
       *--- CONSULTA EL NUMERO DE CUENTA PARA VERIFICAR SU EXISTENCIA.
       *--- TAMBIEN SE LEE SECUENCIALMENTE LOS DATOS DE LA TABLA TATRANS
+      *--- PASANDO CAMPO1I A CÑ-NUMERO-CUENTA-T PARA TRAER LAS 
+      *--- TRANSACCIONES POR NUMERO DE CUENTA.
       *  
            MOVE CAMPO1I TO CL-NUMERO-CUENTA-T 
+      *
+      *--- SE PONE ESPACIONS VACIOS A WS-TATRANS-DATA PARA NO
+      *--- SOBREESCRIBIR LOS DATOS DE UNA NUEVA CONSULTA SI LA HAY
+      *
            MOVE SPACES TO WS-TATRANS-DATA 
-           MOVE 1 TO WS-INDEX 
+      *
+      *--- SE RESETEA EL SWITCHE WS-CONTINUAR POR SI HAY UNA NUEVA
+      *--- CONSULTA, DE LO CONTRARIO NO ENTRARIA AL PERFORM VARYING
+      *
            MOVE 'N' TO WS-CONTINUAR    
-
+      *
+      *--- SE INICIA LA LECTURA DE LA TABLA TATRANS ABRIENDO EL CURSOR.
+      *--- WS-INDEX > 20: SOLO SE LEE 20 VECES DE LA TABLA TATRANS DADO
+      *--- QUE SOLO SE CREARON 20 ESPACION EN LAS VARIABLES DE
+      *--- WS-TATRANS-DATA, SI SE QUIERE LEER MAS ES SOLO MODIFICAR 
+      *--- LOS OCCURS DE LAS VARIBLES Y MODIFICAR WS-INDEX > 20.
+      *
            EXEC SQL OPEN C_TATRANS END-EXEC
            PERFORM VARYING WS-INDEX FROM 1 BY 1 UNTIL WS-EXIT 
                    OR WS-INDEX > 20
@@ -194,11 +211,20 @@
               END-IF    
            END-PERFORM
            EXEC SQL CLOSE C_TATRANS END-EXEC
-
-           MOVE 1 TO WS-PAG-ACTUAL 
+      *
+      *--- UNA VES FINALIZADA LA LECTURA DE LA TABLA TATRANS SE INICIA
+      *--- WS-PAG-ACTUAL A 1 PARA MOSTRAR LA PAGINA ACTUAL EN CICS
+      *--- Y SE CALCULA EL NUMERO DE PAGINAS DEPENDIENDO DE CUANTAS
+      *--- FILAS SE LEYERON DE LA TABLA TATRANS.
+      *
+           MOVE 1 TO WS-PAG-ACTUAL
+           PERFORM 217-IMPRIMIR-NUMERO-PAGINAS 
+      *
+      *--- SE INICIA LOS LIMITES PARA SOLO MOSTRAR 5 FILAS EN LA TABLA
+      *--- LUEGO SE IMPRIME LAS FILAS EN LA TABLA
+      *
            MOVE 1 TO WS-PAG-INI 
            MOVE 5 TO WS-PAG-FIN 
-           PERFORM 217-IMPRIMIR-NUMERO-PAGINAS 
            PERFORM 211-IMPRIMIR-DATOS-CICS 
       *
       *--- FINALIZAMOS CON UN REOTRNO TRANS PARA ENVIAR EL MAPA Y
@@ -206,11 +232,26 @@
       *   
            PERFORM 220-ENVIAR-MAPA
            PERFORM 300-RETURN.    
-
+      *
       *-----------------------------------------------------------------
-      *--- FORMATEAR LOS MOVIMIENTOS PARA MOSTRARLOS DE FORMA ORDENADA 
-      *--- EN LA PANTALLA DE CICS
-      *-----------------------------------------------------------------
+      *--- Este bloque se encarga de imprimir en la pantalla CICS una 
+      *--- página de datos con un máximo de 5 registros por página.
+      *---  
+      *--- Las variables WS-PAG-INI y WS-PAG-FIN indican el rango de 
+      *--- registros que se deben mostrar (por ejemplo, del registro 1 
+      *--- al 5, del 6 al 10, etc.).
+      *---  
+      *--- WS-REL-COUNT es un contador relativo que indica la posición 
+      *--- del registro dentro de la página actual (de 1 a 5), calculado 
+      *--- como:
+      *---      WS-REL-COUNT = WS-COUNT - WS-PAG-INI + 1
+      *---  
+      *--- Dependiendo del valor de WS-REL-COUNT, el registro formateado 
+      *--- se envía a la posición correspondiente en la pantalla CICS 
+      *--- mediante los párrafos 212 a 215, que colocan cada registro 
+      *--- en una línea específica de la pantalla.
+      *--------------------------------------------------------------
+      *
        211-IMPRIMIR-DATOS-CICS.
            PERFORM VARYING WS-COUNT FROM WS-PAG-INI  BY 1 
                    UNTIL WS-COUNT > WS-PAG-FIN 
@@ -255,11 +296,10 @@
            MOVE WS-FECHA-HORA-A(1:10)    TO WS-FECHA 
            MOVE WS-FECHA-HORA-A(12:8)    TO WS-HORA
       *
-      *--- REINICIAMOS EL CONTADOR WS-INDICE A 1 Y EL SWITCHE WS-PERFORM
+      *--- REINICIAMOS EL SWITCHE WS-PERFORM
       *--- PARA FORMATEAR NUEVAMENTE OTRO MONTO
       *
-           MOVE 'N' TO WS-PRFORM 
-           MOVE  1  TO WS-INDICE.
+           MOVE 'N' TO WS-PRFORM.
 
        212-SALIDA-CICS-MOVX1.
            MOVE WS-FECHA                   TO MOV11O 
