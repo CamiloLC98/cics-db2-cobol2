@@ -51,20 +51,25 @@
           03 WC-TRANSACCION              PIC X(4)       VALUE 'MOVS'.
           03 WC-CANTIDAD-TRANSACCIONES   PIC S9(9)      COMP-5.
        01  WS-PAGINACION.
-          03  WS-INDEX                   PIC 9          VALUE 1.   
-          03  WS-PAGINA-ACTUAL           PIC 9(4)       VALUE 1.
-          03  WS-REGISTROS-TOTALES       PIC 9(4)       VALUE 0.   
-          03  WS-FIN-LECTURA             PIC X          VALUE 'N'. 
-          03  WS-REGISTROS-MOSTRADOS     PIC 9(4)       VALUE 0.   
+          03  WS-INDEX                   PIC 9(2)       VALUE 1.   
+          03  WS-NUM-PAG                 PIC 9(1).
+          03  WS-REGISTROS-TOTALES       PIC 9(2)       VALUE 0.
+          03  WS-FILAS-PAG               PIC 9(2)       VALUE 5.
+          03  WS-RESTO                   PIC 9(2).
+          03  WS-PAG-ACTUAL              PIC 9(1).
+          03  WS-PAG-INI                 PIC 9(2).
+          03  WS-PAG-FIN                 PIC 9(2).
+          03  WS-REL-COUNT               PIC 9(2).      
        01  WS-TATRANS-DATA.
-          03  WS-NUM-CUENTA       OCCURS 3 TIMES PIC X(10).
-          03  WS-TIPO-TRANS       OCCURS 3 TIMES PIC X(1).
-          03  WS-MONTO            OCCURS 3 TIMES
+          03  WS-NUM-CUENTA       OCCURS 20 TIMES PIC X(10).
+          03  WS-TIPO-TRANS       OCCURS 20 TIMES PIC X(1).
+          03  WS-MONTO            OCCURS 20 TIMES
                                   PIC ZZZ.ZZZ.ZZZ.ZZZ.ZZZ,ZZ.
-          03  WS-FECHA-HORA       OCCURS 3 TIMES PIC X(26).    
+          03  WS-FECHA-HORA       OCCURS 20 TIMES PIC X(26).    
        01 WS-VARIABLES.
           03  WS-MONTO-VIEW                 PIC X(21).
           03  WS-INDICE                     PIC 9(2).
+          03  WS-COUNT                      PIC 9(2).
           03  WS-MONTO-JUST                 PIC X(21).
           03  WS-FECHA-HORA-A               PIC X(26).
           03  WS-FECHA                      PIC X(10).
@@ -143,6 +148,10 @@
               EVALUATE EIBAID
                    WHEN DFHPF3
                         PERFORM 216-VOLVER-MENU 
+                   WHEN DFHPF4 
+                        PERFORM 219-PAGINA-ANTERIOR 
+                   WHEN DFHPF5
+                        PERFORM 218-PAGINA-SIGUIENTE
                    WHEN DFHENTER
                         PERFORM 210-PROCESAR-DATOS 
               END-EVALUATE
@@ -162,47 +171,20 @@
       *--- TAMBIEN SE LEE SECUENCIALMENTE LOS DATOS DE LA TABLA TATRANS
       *  
            MOVE CAMPO1I TO CL-NUMERO-CUENTA-T 
+           MOVE SPACES TO WS-TATRANS-DATA 
            MOVE 1 TO WS-INDEX 
+           MOVE 'N' TO WS-CONTINUAR    
+
            EXEC SQL OPEN C_TATRANS END-EXEC
-           PERFORM VARYING WS-INDEX FROM 1 BY 1 UNTIL WS-INDEX > 3
-                   OR WS-EXIT 
+           PERFORM VARYING WS-INDEX FROM 1 BY 1 UNTIL WS-EXIT 
+                   OR WS-INDEX > 20
               PERFORM 223-SQL-LEER-TRANSACCIONES
               IF SQLCODE = 0
-                 EVALUATE WS-INDEX 
-                   WHEN 1
-                     MOVE CL-TIPO-TRANSACCION TO WS-TIPO-TRANS(1)
-                     MOVE CL-MONTO            TO WS-MONTO(1)
-                     MOVE CL-FECHA-HORA       TO WS-FECHA-HORA(1)
-                     MOVE CL-NUMERO-CUENTA-T  TO WS-NUM-CUENTA(1)
-                     PERFORM 211-FORMATEAR-MOVIMIENTOS 
-                     PERFORM 212-SALIDA-CICS-MOVX1 
-                   WHEN 2
-                     MOVE CL-TIPO-TRANSACCION TO WS-TIPO-TRANS(2)
-                     MOVE CL-MONTO            TO WS-MONTO(2)
-                     MOVE CL-FECHA-HORA       TO WS-FECHA-HORA(2)
-                     MOVE CL-NUMERO-CUENTA-T  TO WS-NUM-CUENTA(2)
-                     PERFORM 211-FORMATEAR-MOVIMIENTOS 
-                     PERFORM 213-SALIDA-CICS-MOVX2   
-                   WHEN 3
-                     MOVE CL-TIPO-TRANSACCION TO WS-TIPO-TRANS(3)
-                     MOVE CL-MONTO            TO WS-MONTO(3)
-                     MOVE CL-FECHA-HORA       TO WS-FECHA-HORA(3)
-                     MOVE CL-NUMERO-CUENTA-T  TO WS-NUM-CUENTA(3)
-                     PERFORM 211-FORMATEAR-MOVIMIENTOS 
-                     PERFORM 214-SALIDA-CICS-MOVX3 
-      *             WHEN 4
-      *               MOVE CL-TIPO-TRANSACCION TO WS-TIPO-TRANS(4)
-      *               MOVE CL-MONTO            TO WS-MONTO(4)
-      *               MOVE CL-FECHA-HORA       TO WS-FECHA-HORA(4)
-      *               MOVE CL-NUMERO-CUENTA-T  TO WS-NUM-CUENTA(4)
-      *               PERFORM 211-FORMATEAR-MOVIMIENTOS
-      *             WHEN 5 
-      *               MOVE CL-TIPO-TRANSACCION TO WS-TIPO-TRANS(5)
-      *               MOVE CL-MONTO            TO WS-MONTO(5)
-      *               MOVE CL-FECHA-HORA       TO WS-FECHA-HORA(5)
-      *               MOVE CL-NUMERO-CUENTA-T  TO WS-NUM-CUENTA(5)
-      *               PERFORM 211-FORMATEAR-MOVIMIENTOS 
-                  END-EVALUATE 
+                 ADD 1 TO WS-REGISTROS-TOTALES
+                 MOVE CL-TIPO-TRANSACCION TO WS-TIPO-TRANS(WS-INDEX)
+                 MOVE CL-MONTO            TO WS-MONTO(WS-INDEX)
+                 MOVE CL-FECHA-HORA       TO WS-FECHA-HORA(WS-INDEX)
+                 MOVE CL-NUMERO-CUENTA-T  TO WS-NUM-CUENTA(WS-INDEX)
               ELSE 
                 IF SQLCODE = 100
                    SET WS-EXIT TO TRUE 
@@ -212,9 +194,15 @@
               END-IF    
            END-PERFORM
            EXEC SQL CLOSE C_TATRANS END-EXEC
+
+           MOVE 1 TO WS-PAG-ACTUAL 
+           MOVE 1 TO WS-PAG-INI 
+           MOVE 5 TO WS-PAG-FIN 
+           PERFORM 217-IMPRIMIR-NUMERO-PAGINAS 
+           PERFORM 211-IMPRIMIR-DATOS-CICS 
       *
-      *--- FINALIZAMOS CON UN REOTRNO TRANS PARA DEVOLVER EL CONTROL A
-      *--- CICS
+      *--- FINALIZAMOS CON UN REOTRNO TRANS PARA ENVIAR EL MAPA Y
+      *--- DEVOLVER EL CONTROL A CICS
       *   
            PERFORM 220-ENVIAR-MAPA
            PERFORM 300-RETURN.    
@@ -223,13 +211,36 @@
       *--- FORMATEAR LOS MOVIMIENTOS PARA MOSTRARLOS DE FORMA ORDENADA 
       *--- EN LA PANTALLA DE CICS
       *-----------------------------------------------------------------
+       211-IMPRIMIR-DATOS-CICS.
+           PERFORM VARYING WS-COUNT FROM WS-PAG-INI  BY 1 
+                   UNTIL WS-COUNT > WS-PAG-FIN 
+                   COMPUTE WS-REL-COUNT = WS-COUNT - WS-PAG-INI + 1
+                   EVALUATE WS-REL-COUNT 
+                     WHEN 1 
+                       PERFORM  211-FORMATEAR-MOVIMIENTOS
+                       PERFORM  212-SALIDA-CICS-MOVX1
+                     WHEN 2
+                       PERFORM  211-FORMATEAR-MOVIMIENTOS
+                       PERFORM  213-SALIDA-CICS-MOVX2
+                     WHEN 3 
+                       PERFORM  211-FORMATEAR-MOVIMIENTOS 
+                       PERFORM  214-SALIDA-CICS-MOVX3 
+                     WHEN 4 
+                       PERFORM  211-FORMATEAR-MOVIMIENTOS 
+                       PERFORM  215-SALIDA-CICS-MOVX4 
+                     WHEN 5 
+                       PERFORM  211-FORMATEAR-MOVIMIENTOS
+                       PERFORM  215-SALIDA-CICS-MOVX5
+                   END-EVALUATE 
+           END-PERFORM.
+                        
        211-FORMATEAR-MOVIMIENTOS.
       *
       *--- FORMATEAR MONTO A LA IZQUIERDA USANDO PERFORM VARIYING
       *--- PARA ELIMINAR LOS ESPACIOS A LA IZQUIERDA Y CORRER EL
       *--- MONTO DE DERECHA A IZQUIERDA.
       * 
-           MOVE WS-MONTO(WS-INDEX)  TO WS-MONTO-VIEW 
+           MOVE WS-MONTO(WS-COUNT)  TO WS-MONTO-VIEW 
            PERFORM VARYING WS-INDICE FROM 1 BY 1 UNTIL WS-INDICE > 17
                    OR WS-EXIT-PERFORM 
                    IF WS-MONTO-VIEW(WS-INDICE:1) NOT = SPACE 
@@ -240,37 +251,45 @@
       *
       *--- FORMATEAR FECHA Y HORA
       *          
-           MOVE WS-FECHA-HORA(WS-INDEX)  TO WS-FECHA-HORA-A  
+           MOVE WS-FECHA-HORA(WS-COUNT)  TO WS-FECHA-HORA-A  
            MOVE WS-FECHA-HORA-A(1:10)    TO WS-FECHA 
            MOVE WS-FECHA-HORA-A(12:8)    TO WS-HORA
       *
       *--- REINICIAMOS EL CONTADOR WS-INDICE A 1 Y EL SWITCHE WS-PERFORM
-      *--- PARA REINICIAR EL CICLO DE FORMATEO DEL MONTO
+      *--- PARA FORMATEAR NUEVAMENTE OTRO MONTO
       *
-           MOVE  1  TO WS-INDICE
-           MOVE 'N' TO WS-PRFORM.
+           MOVE 'N' TO WS-PRFORM 
+           MOVE  1  TO WS-INDICE.
 
        212-SALIDA-CICS-MOVX1.
            MOVE WS-FECHA                   TO MOV11O 
            MOVE WS-HORA                    TO MOV21O 
-           MOVE WS-TIPO-TRANS(WS-INDEX )   TO MOV31O
-           MOVE WS-MONTO-JUST              TO MOV41O
-           MOVE SPACES TO WS-VARIABLES. 
-
+           MOVE WS-TIPO-TRANS(WS-COUNT)    TO MOV31O
+           MOVE WS-MONTO-JUST              TO MOV41O.
 
        213-SALIDA-CICS-MOVX2.
            MOVE WS-FECHA                   TO MOV12O 
            MOVE WS-HORA                    TO MOV22O 
-           MOVE WS-TIPO-TRANS(WS-INDEX )   TO MOV32O
-           MOVE WS-MONTO-JUST              TO MOV42O
-           MOVE SPACES TO WS-VARIABLES.
+           MOVE WS-TIPO-TRANS(WS-COUNT)    TO MOV32O
+           MOVE WS-MONTO-JUST              TO MOV42O.
 
        214-SALIDA-CICS-MOVX3.
            MOVE WS-FECHA                   TO MOV13O 
            MOVE WS-HORA                    TO MOV23O 
-           MOVE WS-TIPO-TRANS(WS-INDEX )   TO MOV33O
-           MOVE WS-MONTO-JUST              TO MOV43O
-           MOVE SPACES TO WS-VARIABLES.
+           MOVE WS-TIPO-TRANS(WS-COUNT)    TO MOV33O
+           MOVE WS-MONTO-JUST              TO MOV43O.
+
+       215-SALIDA-CICS-MOVX4.
+           MOVE WS-FECHA                   TO MOV14O 
+           MOVE WS-HORA                    TO MOV24O 
+           MOVE WS-TIPO-TRANS(WS-COUNT)    TO MOV34O
+           MOVE WS-MONTO-JUST              TO MOV44O.
+
+       215-SALIDA-CICS-MOVX5.
+           MOVE WS-FECHA                   TO MOV15O 
+           MOVE WS-HORA                    TO MOV25O 
+           MOVE WS-TIPO-TRANS(WS-COUNT)    TO MOV35O
+           MOVE WS-MONTO-JUST              TO MOV45O.
          
        216-VOLVER-MENU.
            MOVE 'MENUPGM' TO CH-XCTL 
@@ -279,6 +298,40 @@
            MOVE WC-PROGRAMA       TO CH-PROGRAMA-RETORNO 
            PERFORM  221-XCTL-PROGRAMA.
 
+       217-IMPRIMIR-NUMERO-PAGINAS.
+           DIVIDE WS-REGISTROS-TOTALES BY WS-FILAS-PAG
+               GIVING WS-NUM-PAG 
+               REMAINDER WS-RESTO 
+           IF WS-RESTO > 0
+              ADD 1 TO WS-NUM-PAG 
+           END-IF 
+           MOVE WS-NUM-PAG TO ALLPAGO
+           MOVE WS-PAG-ACTUAL TO NUMPAGO.
+
+       218-PAGINA-SIGUIENTE.
+           IF WS-PAG-ACTUAL < WS-NUM-PAG 
+              ADD 5 TO WS-PAG-INI 
+              ADD 5 TO WS-PAG-FIN
+              ADD 1 TO WS-PAG-ACTUAL
+   
+              PERFORM 211-IMPRIMIR-DATOS-CICS 
+              MOVE WS-PAG-ACTUAL TO NUMPAGO
+            END-IF
+           PERFORM 220-ENVIAR-MAPA
+           PERFORM 300-RETURN.
+
+       219-PAGINA-ANTERIOR.
+           IF WS-PAG-ACTUAL > 1
+              SUBTRACT 5 FROM WS-PAG-INI 
+              SUBTRACT 5 FROM WS-PAG-FIN 
+              SUBTRACT 1 FROM WS-PAG-ACTUAL 
+              
+              PERFORM 211-IMPRIMIR-DATOS-CICS
+              MOVE WS-PAG-ACTUAL TO NUMPAGO 
+           END-IF  
+           PERFORM 220-ENVIAR-MAPA
+           PERFORM 300-RETURN.
+           
        220-ENVIAR-MAPA.
            EXEC CICS SEND
                 MAP('MOVSMP')
